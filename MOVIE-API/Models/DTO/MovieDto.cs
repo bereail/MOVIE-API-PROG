@@ -8,6 +8,7 @@ namespace movie_api.Models.DTO
 
         public string Director { get; set; }
 
+        public MovieState State { get; set; }
     }
 }
 

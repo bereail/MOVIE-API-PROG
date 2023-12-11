@@ -22,29 +22,35 @@ namespace MOVIE_API.Controllers
 
         //-----------------------------------------------------------------------------------------------------------------------------------------6
         //crear u nnuevo cliente y asociarlo a un booking id  -> Cuaqluier persona
-        //reocnoce si el client ya existe, da errro si no completo todos los campos (mejorar lo del error para que quede claro cual fue)
+
 
         [HttpPost("CreateClient")]
         public IActionResult CreateClient([FromBody] ClientCreateDto clientDto)
         {
             try
             {
+                // Llama al servicio para crear un cliente y obtiene el ID del usuario creado
                 int userId = _clientService.CreateClient(clientDto);
 
+                // Verifica si el usuario se creó exitosamente
                 if (userId != -1)
                 {
-                    return Ok(new { Message = "Client created successfully.", UserId = userId });
+                    // Si el usuario se creó con éxito, devuelve una respuesta 200 OK con un mensaje 
+                    return Ok(new { Message = "Client created successfully."});
                 }
                 else
                 {
+                    // Si ya existe un usuario con el mismo correo electrónico, devuelve una respuesta 400 Bad Request con un mensaje
                     return BadRequest(new { Message = "User with the same email already exists." });
                 }
             }
             catch (Exception ex)
             {
+                // En caso de cualquier otra excepción, devuelve una respuesta 400 Bad Request con un mensaje de error
                 return BadRequest(new { Message = $"Error creating client: {ex.Message}" });
             }
         }
+
 
     }
 }

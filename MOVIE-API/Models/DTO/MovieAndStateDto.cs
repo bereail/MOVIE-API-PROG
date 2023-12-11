@@ -16,3 +16,5 @@ namespace MOVIE_API.Models.DTO
         public MovieState State { get; set; }
     }
 }
+
+// MovieAndStateDto GetMovieById(int movieId)

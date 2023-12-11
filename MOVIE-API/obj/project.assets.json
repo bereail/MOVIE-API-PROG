@@ -8454,11 +8454,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\TP-PROG\\copìa-respaldo\\MOVIE-API\\MOVIE-API.csproj",
+      "projectUniqueName": "C:\\Users\\bsolohaga\\Desktop\\bere\\TP-PROG-MOVIE\\MOVIE-API-PROG\\MOVIE-API\\MOVIE-API.csproj",
       "projectName": "MOVIE-API",
-      "projectPath": "D:\\TP-PROG\\copìa-respaldo\\MOVIE-API\\MOVIE-API.csproj",
+      "projectPath": "C:\\Users\\bsolohaga\\Desktop\\bere\\TP-PROG-MOVIE\\MOVIE-API-PROG\\MOVIE-API\\MOVIE-API.csproj",
       "packagesPath": "C:\\Users\\bsolohaga\\.nuget\\packages\\",
-      "outputPath": "D:\\TP-PROG\\copìa-respaldo\\MOVIE-API\\obj\\",
+      "outputPath": "C:\\Users\\bsolohaga\\Desktop\\bere\\TP-PROG-MOVIE\\MOVIE-API-PROG\\MOVIE-API\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

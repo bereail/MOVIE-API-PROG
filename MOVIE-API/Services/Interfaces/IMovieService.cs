@@ -10,15 +10,16 @@ namespace movie_api.Services.Interfaces
     {
 
 
-        // trae solo todas las peliculs disponibles -> cualquier persona puede ver todas las peliculas
+        // trae solo todas las peliculs disponibles 
         List<MovieDto> GetAvailableMovies();
 
 
-        // trae todas las peliculs y las ordena según su state
-        List<MovieDto> GetMovies();
-
         //funcion para crear una pelicula
         int CreateMovie(MoviePostDto moviePostDto);
+
+
+        // trae todas las peliculs y las ordena según su state
+        Dictionary<MovieState, List<MovieDto>> GetMoviesGroupedByState();
 
 
         // Modifica el estado de la película 

@@ -27,16 +27,18 @@ namespace movie_api.Services
         //// Verifica si el usuario tiene reservas o ninguna y las clasifica en actuales e historial
         public List<BookingDetailDto> GetBookingsAndDetailsByUserId(int userId)
         {
+            // Verifica si el usuario existe en la base de datos
             var userExists = _movieDbContext.Users.Any(u => u.Id == userId);
 
             if (!userExists)
             {
+                // Imprime una advertencia si el usuario no se encuentra y devuelve una lista vacía
                 Console.WriteLine($"Advertencia: Usuario con ID {userId} no encontrado.");
                 return new List<BookingDetailDto>();
             }
 
-            var currentDate = DateTime.Now;
 
+            // Obtiene todos los detalles de reservas relacionados con el usuario
             var bookingsAndDetails = _movieDbContext.BookingDetails
                 .Include(bd => bd.IdBookingNavigation)
                 .Include(bd => bd.IdMovieNavigation)
@@ -51,20 +53,24 @@ namespace movie_api.Services
                 })
                 .ToList();
 
+            // Filtra las reservas actuales basándose en  el estado
             var currentBookings = bookingsAndDetails
-     .Where(bd => bd.ReturnDate == null || (bd.ReturnDate > currentDate && bd.State == BookingDetailState.Reserved))
-     .ToList();
-
-            var historicalBookings = bookingsAndDetails
-                .Where(bd => bd.ReturnDate != null && (bd.ReturnDate <= currentDate || bd.State != BookingDetailState.Reserved))
+                .Where(bd => bd.State == BookingDetailState.Reserved)
                 .ToList();
 
+            // Filtra las reservas históricas basándose el estado
+            var historicalBookings = bookingsAndDetails
+                .Where(bd =>  bd.State != BookingDetailState.Reserved)
+                .ToList();
+
+            // Combina las reservas actuales e históricas y las devuelve
             return currentBookings.Concat(historicalBookings).ToList();
         }
 
 
-        //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+        //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         //crea un nueva booking detail asociada a un id user -> el usuario se logea y genera la reserva luego le lleva le peli o la busca
         public BookingResult CreateBookingDetail(int userId, BookingDetailPostDto bookingDetailDto)
         {
@@ -137,12 +143,91 @@ namespace movie_api.Services
                 throw new InvalidOperationException("Error al crear el BookingDetail.", ex);
             }
         }
+        //-------------------------------------------------------------------------------------------------------------------------------------------------
+        //trae todas las reservas actuales de un usuairo ingrensado su id
+        public List<BookingDetailDto> GetBookingsAndDetailsByUserIdFromFrontend(int userId)
+        {
+            try
+            {
+                // Verifica si el usuario existe en la base de datos
+                var userExists = _movieDbContext.Users.Any(u => u.Id == userId);
+
+                if (!userExists)
+                {
+                    // Imprime una advertencia si el usuario no se encuentra y devuelve una lista vacía
+                    Console.WriteLine($"Advertencia: Usuario con ID {userId} no encontrado.");
+                    return new List<BookingDetailDto>();
+                }
+
+                // Obtiene todos los detalles de reservas relacionados con el usuario
+                var bookingsAndDetails = _movieDbContext.BookingDetails
+                    .Include(bd => bd.IdBookingNavigation)
+                    .Include(bd => bd.IdMovieNavigation)
+                    .Where(bd => bd.IdBookingNavigation.IdUser == userId)
+                    .Select(bd => new BookingDetailDto
+                    {
+                        Id = bd.Id,
+                        MovieTitle = bd.IdMovieNavigation.Title,
+                        State = bd.State,
+                        BookingDate = bd.BookingDate,
+                        ReturnDate = bd.ReturnDate,
+                        Comment = bd.Comment,
+                    })
+                    .ToList();
+
+                // Filtra las reservas actuales basándose en el estado
+                var currentBookings = bookingsAndDetails
+                    .Where(bd => bd.State == BookingDetailState.Reserved)
+                    .ToList();
+
+                // Filtra las reservas históricas basándose en el estado
+                var historicalBookings = bookingsAndDetails
+                    .Where(bd => bd.State != BookingDetailState.Reserved)
+                    .ToList();
+
+                // Combina las reservas actuales e históricas y las devuelve
+                return currentBookings.Concat(historicalBookings).ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener reservas: {ex.Message}");
+                return new List<BookingDetailDto>();
+            }
+        }
 
 
 
-        // -----------------------------------------------------------------------------------------------------
 
-        //trae todas las reservas y sus detalles 
+        //---------------------------------------------------------------------------------------------------------------------------------
+        //ingrensaod el id de la resevra modifica su estado por retornada o cancelada
+
+        public bool UpdateBookingDetailState(int bookingDetailId, BookingDetailState newState)
+        {
+            var bookingDetail = _movieDbContext.BookingDetails
+                .Include(bd => bd.IdBookingNavigation)
+                .Include(bd => bd.IdMovieNavigation)
+                .SingleOrDefault(bd => bd.Id == bookingDetailId &&
+                                       bd.State == BookingDetailState.Reserved); // Puedes ajustar la condición según tus necesidades
+
+            if (bookingDetail != null)
+            {
+                bookingDetail.State = newState;
+                _movieDbContext.SaveChanges();
+                return true; // Indica que se actualizó correctamente
+            }
+            else
+            {
+                return false; // Indica que no se encontró la reserva con el ID proporcionado o no cumplió con las condiciones
+            }
+        }
+
+
+    }
+}
+
+
+
+/*    //trae todas las reservas y sus detalles 
         public List<BookingDetailDto> GetBookingDetails()
         {
           try
@@ -212,83 +297,4 @@ namespace movie_api.Services
 
             return currentReservedBookings;
         }
-
-
-
-        //---------------------------------------------------------------------------------------------------------------------------------
-        //ingrensaod el id de la resevra modifica su estado por retornada o cancelada
-
-        public bool UpdateBookingDetailState(int bookingDetailId, BookingDetailState newState)
-        {
-            var bookingDetail = _movieDbContext.BookingDetails
-                .Include(bd => bd.IdBookingNavigation)
-                .Include(bd => bd.IdMovieNavigation)
-                .SingleOrDefault(bd => bd.Id == bookingDetailId &&
-                                       bd.State == BookingDetailState.Reserved); // Puedes ajustar la condición según tus necesidades
-
-            if (bookingDetail != null)
-            {
-                bookingDetail.State = newState;
-                _movieDbContext.SaveChanges();
-                return true; // Indica que se actualizó correctamente
-            }
-            else
-            {
-                return false; // Indica que no se encontró la reserva con el ID proporcionado o no cumplió con las condiciones
-            }
-        }
-
-
-    }
-}
-
-
-
-
-
-
-//-----------------------------------------------------------------------
-//verifica si el usuario existe, no existe o no tiene reservas asociadas y devuelve su booking id    -> ADMIN
-/*
-public BookingResult CheckBookingByIdUser(int userId)
-{
-    // Verifica si el usuario existe
-    var userExists = _movieDbContext.Users.Any(u => u.Id == userId);
-
-    if (!userExists)
-    {
-        // El usuario no existe, puedes manejar este caso según tus necesidades.
-        // Puedes devolver un resultado indicando que el usuario no existe.
-        return new BookingResult
-        {
-            Success = false,
-            Message = $"El usuario con ID {userId} no existe.",
-            BookingId = 0
-        };
-    }
-
-    // Verifica si el usuario ya tiene una reserva existente
-    var existingBooking = _movieDbContext.Bookings.FirstOrDefault(b => b.IdUser == userId);
-
-    if (existingBooking == null)
-    {
-        // Si el usuario no tiene una reserva, devuelve un resultado indicando que no tiene reservas y sugerir que debe crear una
-        return new BookingResult
-        {
-            Success = true,
-            Message = "El usuario no tiene ninguna reserva existente. Se sugiere crear una reserva.",
-            BookingId = 0
-        };
-    }
-    else
-    {
-        // Si el usuario ya tiene una reserva, devuelve un resultado indicando la existencia de la reserva
-        return new BookingResult
-        {
-            Success = true,
-            Message = "El usuario ya tiene una reserva existente.",
-            BookingId = existingBooking.Id
-        };
-    }
-}
 */

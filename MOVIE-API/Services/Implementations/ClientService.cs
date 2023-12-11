@@ -43,7 +43,7 @@ namespace MOVIE_API.Services.Implementations
                     // Crear un nuevo objeto de tipo Client y asignarle los valores del DTO
                     Client newClient = new Client
                     {
-                        // Propiedades específicas del cliente que debes proporcionar
+                        
                     };
                     
                     // Asociar el cliente al usuario
@@ -57,7 +57,7 @@ namespace MOVIE_API.Services.Implementations
                         var newBooking = new Booking
                         {
                             IdUser = newUser.Id,
-                            // Otras propiedades de la reserva (que no están especificadas en el código proporcionado)
+                           
                         };
 
                         // Agregar la nueva reserva a la base de datos
@@ -68,7 +68,7 @@ namespace MOVIE_API.Services.Implementations
                     }
                     else
                     {
-                        // Usuario ya existe, manejar según tus requisitos
+                        // Usuario ya existe
                         return -1;
                     }
                 }

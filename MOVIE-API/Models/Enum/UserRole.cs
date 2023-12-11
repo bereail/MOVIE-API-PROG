@@ -5,9 +5,9 @@ namespace MOVIE_API.Models.Enum
     public enum UserRole
     {
         [Display(Name = "Admin")]
-        Admin,
+        Admin = 1,
 
         [Display(Name = "Client")]
-        Client
+        Client = 2
     }
 }

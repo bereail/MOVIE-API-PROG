@@ -1,4 +1,5 @@
-﻿using MOVIE_API.Models;
+﻿using movie_api.Models.DTO;
+using MOVIE_API.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
@@ -11,9 +12,6 @@ namespace movie_api.Models.DTO
 
         [Required(ErrorMessage = "El campo 'Director' es requerido.")]
         public string Director { get; set; }
-
-        [Required(ErrorMessage = "El id de 'Admin' es requerido.")]
-        public int? IdAdmin { get; set; }
 
         [JsonIgnore] // Evita que Date se envíe al cliente
         public DateTime? Date { get; set; }
@@ -30,3 +28,4 @@ namespace movie_api.Models.DTO
     }
 }
 
+//CreateMovie(MoviePostDto moviePostDto)

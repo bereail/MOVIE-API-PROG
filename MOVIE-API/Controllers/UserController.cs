@@ -9,25 +9,23 @@ using movie_api.Services.Implementations;
 
 namespace MOVIE_API.Controllers
 {
+    [Authorize] //todos estos endpoint estan protegidos 
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly IMovieService _movieService;
 
 
-        public UserController(IUserService userService, IMovieService movieService)
+        public UserController(IUserService userService)
         {
             _userService = userService;
-            _movieService = movieService;
         }
 
 
 
         //----------------------------------------------------------------------------------------------------------------------------------------
-        //trae un usuario por su id -> ADMIN
-        //modificar el DTO que devuelve
+        //trae un usuario por su id 
 
         [HttpGet("getUserById/{id}")]
         [Authorize]
@@ -35,40 +33,31 @@ namespace MOVIE_API.Controllers
         {
             try
             {
-                // Llamas al servicio para obtener el usuario por ID
+                //  obtener el usuario por ID
                 var user = _userService.GetUserById(id);
 
                 if (user == null)
                 {
-                    // Devuelves un código de estado 404 Not Found si el usuario no se encuentra
+                    // Devuelve código de estado 404 Not Found si el usuario no se encuentra
                     return NotFound($"No se encontró ningún usuario con ID {id}");
                 }
 
-                // Devuelves el usuario encontrado en el cuerpo de la respuesta
+                // Devuelve el usuario encontrado 
                 return Ok(user);
             }
             catch (Exception ex)
             {
-                // Manejas otras excepciones y devuelves un código de estado 500 Internal Server Error
+                // Maneja otras excepciones y devuelves un código de estado 500 Internal Server Error
                 return StatusCode(StatusCodes.Status500InternalServerError, $"Error: {ex.Message}");
             }
 
         }
 
-
-
-
-
-
-
-
         //------------------------------------------------------------------------------------------------------------------------------------------
+        //funcion para traer todos los usuarios 
 
-
-
-        //funcion para traer todos los usuarios -> ADMIN
         [HttpGet("users")]
-        [Authorize(Roles = "Admin")]
+
         public IActionResult GetUsers()
         {
             try
@@ -82,29 +71,8 @@ namespace MOVIE_API.Controllers
             }
         }
 
-
-
-
-        //--------------------------------------------------------------------------------------------------------------------
-        //trae un usuario por su id  -> ADMIN
-
-
-        [HttpGet("{userId}")]
-        public IActionResult GetUser(int userId)
-        {
-            var user = _userService.GetUserById(userId);
-            if (user != null)
-            {
-                return Ok(user);
-            }
-            else
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"No se encontrador usuarios con ese id");
-            }
-        }
-
         //-----------------------------------------------------------------------------------------------------------------------
-        // Función para obtener todos los administradores -> ADMIN 
+        // Función para obtener todos los administradores 
 
         [HttpGet("getAdmins")]
         public IActionResult GetAdmins()
@@ -123,7 +91,7 @@ namespace MOVIE_API.Controllers
 
         //-----------------------------------------------------------------------------------------------------------------------------
 
-        //funcion para traer a todos los clientes -> ADMIN
+        //funcion para traer a todos los clientes 
         [HttpGet("getClients")]
         public IActionResult GetClients()
         {

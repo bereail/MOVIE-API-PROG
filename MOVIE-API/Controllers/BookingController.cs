@@ -10,6 +10,7 @@ using MOVIE_API.Models;
 using movie_api.Services;
 using Microsoft.AspNetCore.Authorization;
 using MOVIE_API.Models.Enum;
+using System.Security.Claims;
 
 namespace movie_api.Controllers
 {
@@ -29,26 +30,99 @@ namespace movie_api.Controllers
 
 
         //------------------------------------------------------------------------------------------------------------
-        //// Verifica si el usuario tiene reservas y las clasifica en actuales e historial
-        //mejorar manejor d errores para verificar si el id existe, no tiene reservas o no existe
-        //mejorar la agrupacion, no las diferencia por su state
-        //funcion para el ADMIN
+        //// trae todas las reservas asociadas a un userId y la ordena segun su estado actuales o historial
+        [HttpGet("bookingsAndDetails")]
+        [Authorize] // Asegura que el usuario esté autenticado
+        public IActionResult GetBookingsAndDetails()
+        {
+            try
+            {
+                // Obtiene el userId del usuario autenticado
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
+                // Llama al servicio para obtener los detalles de las reservas por usuario
+                var bookingsAndDetails = _bookingService.GetBookingsAndDetailsByUserId(userId);
+
+                if (bookingsAndDetails.Count > 0)
+                {
+                    // Filtra las reservas actuales basándose en el estado
+                    var currentBookings = bookingsAndDetails
+                        .Where(bd => bd.State == BookingDetailState.Reserved)
+                        .ToList();
+
+                    // Filtra las reservas históricas basándose en el estado
+                    var historicalBookings = bookingsAndDetails
+                        .Where(bd => bd.State != BookingDetailState.Reserved)
+                        .ToList();
+
+                    // Devuelve un objeto JSON con las reservas actuales e históricas
+                    return Ok(new { CurrentBookings = currentBookings, HistoricalBookings = historicalBookings });
+                }
+
+                // Devuelve un mensaje si no se encuentran reservas para el usuario
+                return NotFound($"No se encontraron reservas para el usuario con ID {userId}");
+            }
+            catch (Exception ex)
+            {
+                // Devuelve un código de estado 500 y un mensaje de error si hay una excepción
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Error al obtener reservas: {ex.Message}");
+            }
+        }
+
+
+
+        //---------------------------------------------------------------------------------------------------------------------------
+        ////crea un nueva booking detail asociada a un id user
+        [HttpPost("CreateBookingDetail")]
+        [Authorize] // Asegura que el usuario esté autenticado
+        public IActionResult CreateBookingDetail([FromBody] BookingDetailPostDto bookingDetailDto)
+        {
+            try
+            {
+                // Obtiene el userId del usuario autenticado
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+                // Llama al servicio para crear el BookingDetail
+                var result = _bookingService.CreateBookingDetail(userId, bookingDetailDto);
+
+                // Verifica si la operación fue exitosa
+                if (result.Success)
+                {
+                    return StatusCode(StatusCodes.Status201Created, result);
+                }
+                else
+                {
+                    return BadRequest(new { Message = result.Message });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Devuelve un código de estado 500 y un mensaje de error si hay una excepción
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Error al crear la reserva: {ex.Message}");
+            }
+        }
+
+
+
+
+        //---------------------------------------------------------------------------------------------------------------------------
+
+        //trae todas las reservas actuales de un usuairo ingrensado su id
         [HttpGet("bookingsAndDetails/{userId}")]
         public IActionResult GetBookingsAndDetailsByUserId(int userId)
         {
             try
             {
-                var bookingsAndDetails = _bookingService.GetBookingsAndDetailsByUserId(userId);
+                var bookingsAndDetails = _bookingService.GetBookingsAndDetailsByUserIdFromFrontend(userId);
 
                 if (bookingsAndDetails.Count > 0)
                 {
                     var currentBookings = bookingsAndDetails
-                        .Where(bd => bd.ReturnDate == null || bd.ReturnDate > DateTime.Now)
+                        .Where(bd => bd.State == BookingDetailState.Reserved)
                         .ToList();
 
                     var historicalBookings = bookingsAndDetails
-                        .Where(bd => bd.ReturnDate != null && bd.ReturnDate <= DateTime.Now)
+                        .Where(bd => bd.State != BookingDetailState.Reserved)
                         .ToList();
 
                     return Ok(new { CurrentBookings = currentBookings, HistoricalBookings = historicalBookings });
@@ -62,98 +136,7 @@ namespace movie_api.Controllers
             }
         }
 
-        //---------------------------------------------------------------------------------------------------------------------------
-        //revisar para no poder ingresar id por consola sino cunado se logea, y no poder crear resver con una mnovie de state que no sea 1
-
-        ////crea un nueva booking detail asociada a un id user
-        [HttpPost("createBookingDetail/{userId}")]
-        public IActionResult CreateBookingDetail(int userId, [FromBody] BookingDetailPostDto bookingDetailDto)
-        {
-            try
-            {
-                var result = _bookingService.CreateBookingDetail(userId, bookingDetailDto);
-                return Ok(result);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest($"Error al crear el BookingDetail: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al crear el BookingDetail: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error interno del servidor");
-            }
-
-        }
-
-
-
-
-        //---------------------------------------------------------------------------------------------------------------------------
-
-
-
-        //trae las booking_details asociadas a un id de user  (MODIFICAR PARA QUE SOLO TRAIGA LA BOOKING ACTUALES STATE = 1)
-
-        [HttpGet("api/User/{userId}/BookingsAndDetails")]
-        public IActionResult GetBookingDetailsByUserId(int userId)
-        {
-            try
-            {
-                List<BookingDetailDto> bookingDetails = _bookingService.GetBookingsAndDetailsByUserId(userId);
-
-                var jsonOptions = new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    PropertyNameCaseInsensitive = true,
-                };
-
-                string jsonResult = JsonSerializer.Serialize(bookingDetails, jsonOptions);
-
-                return Ok(jsonResult);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Error interno del servidor.");
-            }
-        }
-
-
-
-
-
-
-        //----------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-
-
-        //---------------------------------------------------------------------------------------------------------------------------------
-        //ingresando el id d eun usuairio trae solo las booking actuales  
-
-        [HttpGet("currentReservedBookings/{userId}")]
-        public IActionResult GetCurrentReservedBookingsByUserId(int userId)
-        {
-            try
-            {
-                var currentReservedBookings = _bookingService.GetCurrentReservedBookingsByUserId(userId);
-
-                if (currentReservedBookings.Any())
-                {
-                    return Ok(currentReservedBookings);
-                }
-                else
-                {
-                    return NotFound($"No se encontraron reservas actuales para el usuario con ID {userId}.");
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Error: {ex.Message}");
-            }
-        }
-
+     
 
 
         //---------------------------------------------------------------------------------------------------------------------------------
@@ -206,31 +189,3 @@ namespace movie_api.Controllers
 //---------------------------------------------------------------------------------------------------------------------------
 
 
-
-
-
-
-//--------------------------------------------------------------------------------------------------------------------------------------
-//verifica si el usuario existe, no existe o no tiene reservas asociadas y devuelve su booking id
-/*[HttpGet("CheckBooking/{userId}")]
-public IActionResult CheckBooking(int userId)
-{
-    try
-    {
-        var result = _bookingService.CheckBookingByIdUser(userId);
-
-        if (result.Success)
-        {
-            return Ok(new { Message = result.Message, BookingId = result.BookingId });
-        }
-        else
-        {
-            return BadRequest(new { Message = result.Message });
-        }
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(StatusCodes.Status500InternalServerError, $"Error interno del servidor: {ex.Message}");
-    }
-}
-*/

@@ -7,14 +7,15 @@ namespace movie_api.Services.Interfaces
 {
     public interface IUserService
     {
-        //busca un usuario por su email -
+
+        //busca un usuario por su email -> funcion para el login
         public User? GetUserByEmail(string email);
+
+        //funcion para logearse
+        public BaseResponse Login(string mail, string password);
 
         //busca un usuario por su id
         User? GetUserById(int id);
-
-        //funcion para logarse
-        public BaseResponse Login(string mail, string password);
 
 
         //funcion para traer todas los usuarios registrados

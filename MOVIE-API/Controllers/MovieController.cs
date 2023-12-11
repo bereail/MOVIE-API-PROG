@@ -22,16 +22,15 @@ namespace movie_api.Controllers
             _movieService = movieService;
         }
 
-        //-----------------------------------------------------------------------------------------------------------------------------------
-        // trae todas las peliculas dispobles -> cualquier persona puede ver todas las peliculas
+//-----------------------------------------------------------------------------------------------------------------------------------
+     // trae todas las peliculas dispobles (State = "Available" = 1)
+
         [HttpGet("GetAllAvailable")]
         public IActionResult GetAvailableMovies()
         {
             try
             {
                 var movies = _movieService.GetAvailableMovies();
-
-
 
                 return Ok(movies);
             }
@@ -41,16 +40,27 @@ namespace movie_api.Controllers
             }
         }
 
-        //--------------------------------------------------------------------------------------------------------------------------
 
-        //funcion para agregar una nueva pelicula -> admin
-        //Add movies
+//--------------------------------------------------------------------------------------------------------------------------
+        //funcion para agregar una nueva pelicula -
+
         [HttpPost("addMovie")]
+        [Authorize]
         public IActionResult CreateMovie([FromBody] MoviePostDto movie)
         {
             try
             {
-                return StatusCode(StatusCodes.Status201Created, _movieService.CreateMovie(movie));
+                // Verifica si el usuario está autenticado
+                if (User.Identity.IsAuthenticated)
+                {
+
+                    return StatusCode(StatusCodes.Status201Created, _movieService.CreateMovie(movie));
+                }
+                else
+                {
+                    // Devuelve un código de estado 401 Unauthorized si el usuario no está autenticado
+                    return StatusCode(StatusCodes.Status401Unauthorized, "Debe iniciar sesión para realizar esta acción.");
+                }
             }
             catch (Exception ex)
             {
@@ -59,12 +69,36 @@ namespace movie_api.Controllers
         }
 
 
-        //--------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------
+        // trae TODAS las peliculs y las ordena según su state 
+
+        [HttpGet("getMoviesGroupedByState")]
+        [Authorize]
+        public IActionResult GetMoviesGroupedByState()
+        {
+            try
+            {
+                var groupedMovies = _movieService.GetMoviesGroupedByState();
 
 
-        //modifica el estado de una pelicula    -> ADMIN
+                return Ok(groupedMovies);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener películas agrupadas por estado: {ex.Message}");
+                return StatusCode(500, "Error interno del servidor");
+            }
+        }
+
+
+
+//--------------------------------------------------------------------------------------------------------------------------
+        //modifica el estado de una pelicula    
         //-solo permite estados validos
+
+
         [HttpPut("movies/{id}/updateState")]
+        [Authorize]
         public IActionResult UpdateMovieState(int id, [FromBody] MovieState newState)
         {
             try
@@ -79,17 +113,14 @@ namespace movie_api.Controllers
         }
 
 
-
-
       
 
-        //--------------------------------------------------------------------------------------------------------------------------
-
-
-        //buscar peloicula por id -> ADMIN
-        //encuntra todas la speloculas, no importa su estado
+//-------------------------------------------------------------------------------------------------------------------------------------
+//buscar peloicula por id -> ADMIN
+ //encuntra todas la speloculas, no importa su estado
 
         [HttpGet("movies/{id}")]
+        [Authorize]
         public IActionResult GetMovieById(int id)
         {
             try
@@ -111,12 +142,9 @@ namespace movie_api.Controllers
 
 
 
-        //--------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+// Buscar películas por título
 
-
-
-
-        // Buscar películas por título
         [HttpGet("searchByTitle")]
         public IActionResult SearchMoviesByTitle([FromQuery] string title)
         {

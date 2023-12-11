@@ -1,10 +1,12 @@
 ﻿using movie_api.Models.DTO;
 using MOVIE_API.Models.Enum;
+using System.Text.Json.Serialization;
 
 namespace MOVIE_API.Models.DTO
 {
     public class BookingDetailDto
     {
+
         public int Id { get; set; }
         public string MovieTitle { get; set; }
         public BookingDetailState? State { get; set; }

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "5LsEILvi8JyhEM4GtubOQkkTepvGw6Wtt4u4/SkZpQBh8RB/o8sZhE+qPsmuiRXWlXyfyon1iP2PZBzXeGJJDA==",
+  "dgSpecHash": "X4QSHzoD27SlnZyoncZ2h9sMuKaz9q4E5tN1w/YoK6XPk2swjFLZqt3szYSlaAKKoNSP6exsYyRCkotYmDVj1w==",
   "success": true,
-  "projectFilePath": "D:\\TP-PROG\\copìa-respaldo\\MOVIE-API\\MOVIE-API.csproj",
+  "projectFilePath": "C:\\Users\\bsolohaga\\Desktop\\bere\\TP-PROG-MOVIE\\MOVIE-API-PROG\\MOVIE-API\\MOVIE-API.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\bsolohaga\\.nuget\\packages\\azure.core\\1.25.0\\azure.core.1.25.0.nupkg.sha512",
     "C:\\Users\\bsolohaga\\.nuget\\packages\\azure.identity\\1.7.0\\azure.identity.1.7.0.nupkg.sha512",

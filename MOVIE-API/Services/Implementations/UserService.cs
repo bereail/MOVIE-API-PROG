@@ -21,28 +21,14 @@ namespace movie_api.Services.Implementations
 
 
 
+        //----------------------------------------------------------------------------------------------------------------------------------------
 
-
-
-
-        //-----------------------------------------------------------------------------------------------------------------
         //busca un usuario por su email
-        //Buscar usuario por mail -----------------------------------------------------------------------------------
         public User? GetUserByEmail(string email)
         {
             return _movieDbContext.Users.SingleOrDefault(u => u.Email == email);
-        }
-
-        //----------------------------------------------------------------------------------------------------------------------------------------
 
 
-
-
-
-        //trae un usuario por su id
-        public User? GetUserById(int id)
-        {
-            return _movieDbContext.Users.SingleOrDefault(u => u.Id == id);
         }
 
 
@@ -79,55 +65,26 @@ namespace movie_api.Services.Implementations
                 response.Message = "wrong email";
             }
 
-            //if (userForLogin.UserType == "alumno")
-            //        return userForLogin.FirstOrDefault(p => p.UserName == userForLogin.UserName && p.Password == userForLogin.Password);
-            //    return userForLogin.FirstOrDefault(p => p.UserName == userForLogin.UserName && p.Password == userForLogin.Password);
-
 
             return response;
         }
-
-
-      /*  revisar, estaba"duplicado" en movieService
-       *  // validacion de credenciales - login -------------------------------------------------------------------------
-        public BaseResponse Login(string email, string userPassword)
-        {
-            BaseResponse response = new BaseResponse();
-            User? userForLogin = _moviedbContext.Users.SingleOrDefault(u => u.Email == email);
-            if (userForLogin != null)
-            {
-                if (userForLogin.Pass == userPassword)
-                {
-                    response.IsSuccess = true;
-                    response.Message = "loging Succesfull";
-                }
-                else
-                {
-                    response.IsSuccess = false;
-                    response.Message = "wrong password";
-                }
-            }
-            else
-            {
-                response.IsSuccess = false;
-                response.Message = "wrong email";
-            }
-            return response;
-        }
-
-
-        */
-
 
 
 
         //----------------------------------------------------------------------------------------------------------------------------------------
 
+        //trae un usuario por su id
+        public User? GetUserById(int id)
+        {
+            return _movieDbContext.Users.SingleOrDefault(u => u.Id == id);
+        }
 
 
 
-        // Función para obtener todas los usuarios registrados  -> funcion del admin o superadmin
-        //verificar el mapeo de datos, mejorar el dto
+
+        //----------------------------------------------------------------------------------------------------------------------------------------
+        // Función para obtener todas los usuarios registrados  
+
         public List<UserDto> GetUsers()
         {
             try
@@ -151,22 +108,22 @@ namespace movie_api.Services.Implementations
                 Id = user.Id,
                 Name = user.Name,
                 Lastname = user.Lastname,
-                Rol = user.Rol, // Convertir UserRole a int directamente
+                Rol = user.Rol, 
             };
         }
 
 
 
         //----------------------------------------------------------------------------------------------------------------------------------------
-        // Función para obtener todos los administradores -> ADMIN 
+        // Función para obtener todos los administradores 
 
         public IEnumerable<AdminDto> GetAdmins()
         {
             try
             {
                 var admins = _movieDbContext.Users
-     .Where(u => u.Rol == UserRole.Admin)
-     .ToList();
+                .Where(u => u.Rol == UserRole.Admin)
+            .ToList();
                 var adminDtos = admins.Select(MapToAdminDto).ToList();
                 return adminDtos;
             }
@@ -184,41 +141,48 @@ namespace movie_api.Services.Implementations
                 Name = user.Name,
                 Lastname = user.Lastname,
                 Email = user.Email
-                // Puedes mapear más propiedades si es necesario
             };
         }
 
-//-----------------------------------------------------------------------------------------------------------------------------
+        //-----------------------------------------------------------------------------------------------------------------------------
 
-        //funcion para traer a todos los clientes -> ADMIN
+        //funcion para traer a todos los clientes 
 
         public IEnumerable<ClientDto> GetClients()
         {
             try
             {
+                // Obtener todos los usuarios con el rol "Client" desde la base de datos
                 var clients = _movieDbContext.Users.Where(u => u.Rol == UserRole.Client).ToList();
+
+                // Mapear los usuarios a objetos ClientDto usando la función MapToClientDto
                 var clientDtos = clients.Select(MapToClientDto).ToList();
+
+                // Devolver la lista de ClientDto
                 return clientDtos;
             }
             catch (Exception ex)
             {
+                // Manejar cualquier excepción que pueda ocurrir durante la obtención de clientes
                 Console.WriteLine($"Error al obtener clientes: {ex.Message}");
+
+                // En caso de error, devolver una lista vacía de ClientDto
                 return Enumerable.Empty<ClientDto>();
             }
         }
 
-
-
+        // Función para mapear un objeto User a un objeto ClientDto
         private ClientDto MapToClientDto(User user)
         {
+            // Crear y devolver un nuevo objeto ClientDto con propiedades mapeadas desde el objeto User
             return new ClientDto
             {
                 Name = user.Name,
                 Lastname = user.Lastname,
                 Email = user.Email
-                // Puedes mapear más propiedades si es necesario
             };
         }
+
 
 
     }
